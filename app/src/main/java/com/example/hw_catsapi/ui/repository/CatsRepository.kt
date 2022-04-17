@@ -1,4 +1,6 @@
 package com.example.hw_catsapi.ui.repository
 
-class CatsRepository {
+import com.example.hw_catsapi.ui.retrofit.CatsApi
+
+class CatsRepository(catsApi: CatsApi) {
 }
