@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="fragment_cats_breed_padding">16dp</dimen>
+    <dimen name="item_cats_breed_image_view_size">150dp</dimen>
+    <dimen name="item_cats_breed_text_size">30sp</dimen>
+    <dimen name="item_cats_breed_padding">16dp</dimen>
+</resources>

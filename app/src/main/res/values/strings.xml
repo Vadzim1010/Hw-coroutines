@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">HW-CatsApi</string>
+    <string name="cat_image">cat image</string>
 </resources>
