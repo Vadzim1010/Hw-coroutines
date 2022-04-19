@@ -9,7 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.hw_catsapi.databinding.FragmentCatsBreedBinding
 import com.example.hw_catsapi.ui.CatsApplication
-import com.example.hw_catsapi.ui.adapter.CatsBreedAdapter
+import com.example.hw_catsapi.adapter.CatsBreedAdapter
 
 class CatsBreedFragment : Fragment() {
 

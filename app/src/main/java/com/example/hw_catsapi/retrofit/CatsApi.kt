@@ -1,6 +1,6 @@
-package com.example.hw_catsapi.ui.retrofit
+package com.example.hw_catsapi.retrofit
 
-import com.example.hw_catsapi.ui.retrofit.model.ApiCatsBreeds
+import com.example.hw_catsapi.retrofit.model.ApiCatsBreeds
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query

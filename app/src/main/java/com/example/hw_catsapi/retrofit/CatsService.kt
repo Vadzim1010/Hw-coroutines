@@ -1,4 +1,4 @@
-package com.example.hw_catsapi.ui.retrofit
+package com.example.hw_catsapi.retrofit
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

@@ -1,4 +1,4 @@
-package com.example.hw_catsapi.ui.retrofit.model
+package com.example.hw_catsapi.retrofit.model
 
 import com.google.gson.annotations.SerializedName
 

@@ -1,4 +1,4 @@
-package com.example.hw_catsapi.ui.model
+package com.example.hw_catsapi.model
 
 sealed class LoadState {
 

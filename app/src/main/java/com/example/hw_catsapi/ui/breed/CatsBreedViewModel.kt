@@ -3,13 +3,12 @@ package com.example.hw_catsapi.ui.breed
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.hw_catsapi.ui.model.CatBreed
-import com.example.hw_catsapi.ui.repository.CatsRepository
-import com.example.hw_catsapi.ui.retrofit.model.ApiCatsBreeds
+import com.example.hw_catsapi.model.LoadState
+import com.example.hw_catsapi.repository.CatsRepository
 
 class CatsBreedViewModel(private val repository: CatsRepository) : ViewModel() {
 
-    fun fetchCatsBreeds(): LiveData<List<CatBreed>> {
+    fun fetchCatsBreeds(): LiveData<List<LoadState>> {
         return repository.fetchCatsBreeds()
     }
 }
