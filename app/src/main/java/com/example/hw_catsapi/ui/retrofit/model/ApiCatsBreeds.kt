@@ -1,10 +1,10 @@
-package com.example.hw_catsapi.ui.retrofit
+package com.example.hw_catsapi.ui.retrofit.model
 
 import com.google.gson.annotations.SerializedName
 
 data class ApiCatsBreeds(
 
-    val id: Int,
+    val id: String,
 
     @SerializedName("name")
     val breed: String,

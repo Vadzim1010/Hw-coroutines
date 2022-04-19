@@ -6,14 +6,17 @@ import retrofit2.create
 
 object CatsService {
 
-    private val retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://api.thecatapi.com/v1")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    private val retrofit = Retrofit.Builder()
+        .baseUrl("https://api.thecatapi.com")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+
+    private val catsApi by lazy {
+        retrofit.create<CatsApi>()
     }
 
     fun provideCatsApi(): CatsApi {
-        return retrofit.create()
+        return catsApi
     }
 }
