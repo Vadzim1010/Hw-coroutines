@@ -1,12 +1,16 @@
 package com.example.hw_catsapi.model
 
-sealed class LoadState {
+sealed class Item {
 
     data class CatBreed(
         val id: String,
         val breed: String,
         val catImageUrl: String?,
-    ) : LoadState()
+    ) : Item()
 
-    object Loading : LoadState()
+    object Loading : Item()
+
+    data class Error(
+        val error: String
+    ) : Item()
 }

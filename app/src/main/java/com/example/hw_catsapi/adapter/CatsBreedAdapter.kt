@@ -2,28 +2,31 @@ package com.example.hw_catsapi.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.hw_catsapi.databinding.ItemCatsBreedBinding
+import com.example.hw_catsapi.databinding.ItemErrorBinding
 import com.example.hw_catsapi.databinding.ItemLoadingBinding
-import com.example.hw_catsapi.model.LoadState
+import com.example.hw_catsapi.model.Item
 
 class CatsBreedAdapter(context: Context) :
-    ListAdapter<LoadState, RecyclerView.ViewHolder>(DIF_UTIL) {
+    ListAdapter<Item, ItemViewHolder>(DIF_UTIL) {
 
     private val layoutInflater = LayoutInflater.from(context)
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
-            is LoadState.CatBreed -> TYPE_CATS_BREEDS
-            LoadState.Loading -> TYPE_LOADING
+            is Item.CatBreed -> TYPE_CATS_BREEDS
+            is Item.Error -> TYPE_ERROR
+            Item.Loading -> TYPE_LOADING
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         return when (viewType) {
             TYPE_CATS_BREEDS -> {
                 CatsBreedViewHolder(
@@ -35,46 +38,76 @@ class CatsBreedAdapter(context: Context) :
                     binding = ItemLoadingBinding.inflate(layoutInflater, parent, false)
                 )
             }
+            TYPE_ERROR -> {
+                ErrorViewHolder(
+                    binding = ItemErrorBinding.inflate(layoutInflater, parent, false)
+                )
+            }
             else -> error("incorrect loading type : $viewType")
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val catsBreedsHolder = holder as? CatsBreedViewHolder ?: return
-        val item = getItem(position) as? LoadState.CatBreed ?: return
-        catsBreedsHolder.bind(item)
+    override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
+        holder.bind(getItem(position))
     }
 
     companion object {
 
-        private const val TYPE_CATS_BREEDS = 1
-        private const val TYPE_LOADING = 0
+        private const val TYPE_CATS_BREEDS = 0
+        private const val TYPE_ERROR = 1
+        private const val TYPE_LOADING = 2
 
-        private val DIF_UTIL = object : DiffUtil.ItemCallback<LoadState>() {
+        private val DIF_UTIL = object : DiffUtil.ItemCallback<Item>() {
             override fun areItemsTheSame(
-                oldItem: LoadState,
-                newItem: LoadState
+                oldItem: Item,
+                newItem: Item
             ): Boolean {
                 return oldItem == newItem
             }
 
             override fun areContentsTheSame(
-                oldItem: LoadState,
-                newItem: LoadState
+                oldItem: Item,
+                newItem: Item
             ): Boolean {
-                return oldItem == newItem
+                val oldCatBreedItem = oldItem as? Item.CatBreed ?: return false
+                val newCatBreedItem = oldItem as? Item.CatBreed ?: return false
+                return oldCatBreedItem.breed == newCatBreedItem.breed &&
+                        oldCatBreedItem.catImageUrl == newCatBreedItem.catImageUrl
             }
         }
     }
 }
 
-class CatsBreedViewHolder(private val binding: ItemCatsBreedBinding) :
-    RecyclerView.ViewHolder(binding.root) {
+abstract class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
-    fun bind(catBreed: LoadState.CatBreed) = with(binding) {
-        catBreedTextView.text = catBreed.breed
-        catImageView.load(catBreed.catImageUrl)
+    abstract fun bind(item: Item)
+}
+
+class CatsBreedViewHolder(private val binding: ItemCatsBreedBinding) :
+    ItemViewHolder(binding.root) {
+
+    override fun bind(item: Item) {
+        val itemCat = item as? Item.CatBreed ?: return
+        binding.catBreedTextView.text = itemCat.breed
+        binding.catImageView.load(itemCat.catImageUrl)
     }
 }
 
-class LoadingViewHolder(binding: ItemLoadingBinding) : RecyclerView.ViewHolder(binding.root)
+class ErrorViewHolder(
+    private val binding: ItemErrorBinding
+) : ItemViewHolder(binding.root) {
+
+    override fun bind(item: Item) {
+        val errorItem = item as? Item.Error ?: return
+        binding.errorTextView.text = errorItem.error
+    }
+}
+
+class LoadingViewHolder(
+    binding: ItemLoadingBinding
+) : ItemViewHolder(binding.root) {
+
+    override fun bind(item: Item) {
+        // do nothing
+    }
+}

@@ -7,9 +7,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.hw_catsapi.databinding.FragmentCatsBreedBinding
-import com.example.hw_catsapi.ui.CatsApplication
 import com.example.hw_catsapi.adapter.CatsBreedAdapter
+import com.example.hw_catsapi.databinding.FragmentCatsBreedBinding
+import com.example.hw_catsapi.extentions.addPagingScrollListener
+import com.example.hw_catsapi.repository.Loading
+import com.example.hw_catsapi.ui.CatsApplication
 
 class CatsBreedFragment : Fragment() {
 
@@ -35,12 +37,31 @@ class CatsBreedFragment : Fragment() {
         val catsAdapter = CatsBreedAdapter(requireContext())
 
         with(binding) {
-            recycler.apply {
-                adapter = catsAdapter
-                layoutManager = LinearLayoutManager(requireContext())
+
+
+            swipeRefresh.setOnRefreshListener {
+                viewModel.fetchFirstPage().observe(viewLifecycleOwner) {
+                    catsAdapter.submitList(it.toList())
+                }
+                viewModel.getLoadingStatus().observe(viewLifecycleOwner) {
+                    if (it == Loading.NOT_LOADING) {
+                        swipeRefresh.isRefreshing = false
+                    }
+                }
             }
 
-            viewModel.fetchCatsBreeds().observe(viewLifecycleOwner) {
+            recycler.apply {
+                val layout = LinearLayoutManager(requireContext())
+                adapter = catsAdapter
+                layoutManager = layout
+                addPagingScrollListener(layout, 10) {
+                    viewModel.fetchNextPage().observe(viewLifecycleOwner) {
+                        catsAdapter.submitList(it.toList())
+                    }
+                }
+            }
+
+            viewModel.fetchFirstPage().observe(viewLifecycleOwner) {
                 catsAdapter.submitList(it.toList())
             }
         }

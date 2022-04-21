@@ -3,13 +3,22 @@ package com.example.hw_catsapi.ui.breed
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.hw_catsapi.model.LoadState
+import com.example.hw_catsapi.model.Item
 import com.example.hw_catsapi.repository.CatsRepository
+import com.example.hw_catsapi.repository.Loading
 
 class CatsBreedViewModel(private val repository: CatsRepository) : ViewModel() {
 
-    fun fetchCatsBreeds(): LiveData<List<LoadState>> {
-        return repository.fetchCatsBreeds()
+    fun getLoadingStatus(): LiveData<Loading> {
+        return repository.getLoadingStatus()
+    }
+
+    fun fetchFirstPage(): LiveData<List<Item>> {
+        return repository.fetchFirstPage()
+    }
+
+    fun fetchNextPage(): LiveData<List<Item>> {
+        return repository.fetchNextPage()
     }
 }
 
