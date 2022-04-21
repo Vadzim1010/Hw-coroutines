@@ -7,7 +7,7 @@ import retrofit2.create
 object CatsService {
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("https://api.thecatapi.com")
+        .baseUrl("https://api.thecatapi.com/v1/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

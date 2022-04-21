@@ -13,18 +13,20 @@ class CatsBreedViewModel(private val repository: CatsRepository) : ViewModel() {
         return repository.getLoadingStatus()
     }
 
-    fun fetchFirstPage(): LiveData<List<Item>> {
-        return repository.fetchFirstPage()
+    fun fetchBreeds(): LiveData<List<Item>> {
+        return repository.fetchBreeds()
     }
 
-    fun fetchNextPage(): LiveData<List<Item>> {
-        return repository.fetchNextPage()
+    fun refresh() {
+        repository.refresh()
     }
 }
 
 
-class CatsBreedViewModelFactory(private val repository: CatsRepository) :
-    ViewModelProvider.Factory {
+class CatsBreedViewModelFactory(
+    private val repository: CatsRepository,
+) : ViewModelProvider.Factory {
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         return CatsBreedViewModel(repository) as T

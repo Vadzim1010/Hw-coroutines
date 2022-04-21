@@ -8,6 +8,23 @@
     <fragment
         android:id="@+id/cats_breed"
         android:name="com.example.hw_catsapi.ui.breed.CatsBreedFragment"
-        tools:layout="@layout/fragment_cats_breed" />
+        tools:layout="@layout/fragment_cats_breed">
+
+        <action
+            android:id="@+id/to_description"
+            app:destination="@id/cats_description" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/cats_description"
+        android:name="com.example.hw_catsapi.ui.description.DescriptionFragment"
+        tools:layout="@layout/fragement_description">
+
+        <argument
+            android:name="item_id"
+            app:argType="string" />
+    </fragment>
+
 
 </navigation>

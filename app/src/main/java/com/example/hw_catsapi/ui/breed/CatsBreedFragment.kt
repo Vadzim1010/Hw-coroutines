@@ -6,12 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.hw_catsapi.CatsApplication
+import com.example.hw_catsapi.R
 import com.example.hw_catsapi.adapter.CatsBreedAdapter
 import com.example.hw_catsapi.databinding.FragmentCatsBreedBinding
-import com.example.hw_catsapi.extentions.addPagingScrollListener
 import com.example.hw_catsapi.repository.Loading
-import com.example.hw_catsapi.ui.CatsApplication
+import com.example.hw_catsapi.utils.addBottomSpaceDecorationRes
+import com.example.hw_catsapi.utils.addPagingScrollListener
 
 class CatsBreedFragment : Fragment() {
 
@@ -34,15 +37,15 @@ class CatsBreedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val catsAdapter = CatsBreedAdapter(requireContext())
+        val catsAdapter = CatsBreedAdapter(requireContext()) {
+            findNavController().navigate(CatsBreedFragmentDirections.toDescription(it))
+        }
 
         with(binding) {
 
 
             swipeRefresh.setOnRefreshListener {
-                viewModel.fetchFirstPage().observe(viewLifecycleOwner) {
-                    catsAdapter.submitList(it.toList())
-                }
+                viewModel.refresh()
                 viewModel.getLoadingStatus().observe(viewLifecycleOwner) {
                     if (it == Loading.NOT_LOADING) {
                         swipeRefresh.isRefreshing = false
@@ -54,14 +57,15 @@ class CatsBreedFragment : Fragment() {
                 val layout = LinearLayoutManager(requireContext())
                 adapter = catsAdapter
                 layoutManager = layout
+                addBottomSpaceDecorationRes(resources.getDimensionPixelSize(R.dimen.item_space_bottom))
                 addPagingScrollListener(layout, 10) {
-                    viewModel.fetchNextPage().observe(viewLifecycleOwner) {
+                    viewModel.fetchBreeds().observe(viewLifecycleOwner) {
                         catsAdapter.submitList(it.toList())
                     }
                 }
             }
 
-            viewModel.fetchFirstPage().observe(viewLifecycleOwner) {
+            viewModel.fetchBreeds().observe(viewLifecycleOwner) {
                 catsAdapter.submitList(it.toList())
             }
         }

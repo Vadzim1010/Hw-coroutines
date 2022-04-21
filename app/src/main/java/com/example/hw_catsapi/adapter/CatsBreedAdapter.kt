@@ -8,12 +8,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import coil.size.Scale
+import coil.size.ViewSizeResolver
 import com.example.hw_catsapi.databinding.ItemCatsBreedBinding
 import com.example.hw_catsapi.databinding.ItemErrorBinding
 import com.example.hw_catsapi.databinding.ItemLoadingBinding
 import com.example.hw_catsapi.model.Item
 
-class CatsBreedAdapter(context: Context) :
+class CatsBreedAdapter(
+    context: Context,
+    private val itemClick: (String) -> Unit
+) :
     ListAdapter<Item, ItemViewHolder>(DIF_UTIL) {
 
     private val layoutInflater = LayoutInflater.from(context)
@@ -30,7 +35,9 @@ class CatsBreedAdapter(context: Context) :
         return when (viewType) {
             TYPE_CATS_BREEDS -> {
                 CatsBreedViewHolder(
-                    binding = ItemCatsBreedBinding.inflate(layoutInflater, parent, false)
+                    binding = ItemCatsBreedBinding.inflate(layoutInflater, parent, false),
+                    itemClick = itemClick
+
                 )
             }
             TYPE_LOADING -> {
@@ -83,13 +90,24 @@ abstract class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     abstract fun bind(item: Item)
 }
 
-class CatsBreedViewHolder(private val binding: ItemCatsBreedBinding) :
+class CatsBreedViewHolder(
+    private val binding: ItemCatsBreedBinding,
+    private val itemClick: (String) -> Unit
+) :
     ItemViewHolder(binding.root) {
 
     override fun bind(item: Item) {
         val itemCat = item as? Item.CatBreed ?: return
-        binding.catBreedTextView.text = itemCat.breed
-        binding.catImageView.load(itemCat.catImageUrl)
+        with(binding) {
+            catBreedTextView.text = itemCat.breed
+            catImageView.load(itemCat.catImageUrl) {
+                scale(Scale.FILL)
+                size(ViewSizeResolver(root))
+            }
+            cardView.setOnClickListener {
+                itemClick(itemCat.id)
+            }
+        }
     }
 }
 

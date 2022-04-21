@@ -1,15 +1,21 @@
 package com.example.hw_catsapi.retrofit
 
 import com.example.hw_catsapi.retrofit.model.ApiCatsBreeds
+import com.example.hw_catsapi.retrofit.model.ApiDescription
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface CatsApi {
 
-    @GET("v1/breeds?x-api-key=b976a021-6e7d-42c6-9314-126cba7706d9")
+    @GET("breeds")
     fun getCatsBreed(
         @Query("page") page: Int,
         @Query("limit") limit: Int,
     ): Call<List<ApiCatsBreeds>>
+
+    @GET("images/search")
+    fun getBreedById(
+        @Query("breed_ids") breedId: String
+    ): Call<List<ApiDescription>>
 }

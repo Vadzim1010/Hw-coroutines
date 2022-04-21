@@ -1,4 +1,4 @@
-package com.example.hw_catsapi.ui
+package com.example.hw_catsapi
 
 import android.app.Application
 import com.example.hw_catsapi.repository.CatsRepository

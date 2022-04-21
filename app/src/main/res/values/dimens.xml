@@ -5,4 +5,5 @@
     <dimen name="item_cats_breed_text_size">30sp</dimen>
     <dimen name="item_padding">16dp</dimen>
     <dimen name="item_error_text_size">20sp</dimen>
+    <dimen name="item_space_bottom">20sp</dimen>
 </resources>
