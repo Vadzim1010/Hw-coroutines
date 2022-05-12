@@ -6,15 +6,23 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.hw_catsapi.CatsApplication
 import com.example.hw_catsapi.R
 import com.example.hw_catsapi.adapter.CatsBreedAdapter
 import com.example.hw_catsapi.databinding.FragmentCatsBreedBinding
-import com.example.hw_catsapi.repository.Loading
+import com.example.hw_catsapi.model.CatBreed
+import com.example.hw_catsapi.model.PagingItem
 import com.example.hw_catsapi.utils.addBottomSpaceDecorationRes
 import com.example.hw_catsapi.utils.addPagingScrollListener
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CatsBreedFragment : Fragment() {
 
@@ -22,6 +30,11 @@ class CatsBreedFragment : Fragment() {
     private val binding get() = requireNotNull(_binding) { "binding is null $_binding" }
     private val viewModel by viewModels<CatsBreedViewModel> {
         CatsBreedViewModelFactory((requireActivity().application as CatsApplication).repository)
+    }
+    private val catsAdapter by lazy {
+        CatsBreedAdapter(requireContext()) {
+            findNavController().navigate(CatsBreedFragmentDirections.toDescription(it))
+        }
     }
 
     override fun onCreateView(
@@ -36,22 +49,18 @@ class CatsBreedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val catsAdapter = CatsBreedAdapter(requireContext()) {
-            findNavController().navigate(CatsBreedFragmentDirections.toDescription(it))
-        }
+        fetchPage()
 
         with(binding) {
 
-
-            swipeRefresh.setOnRefreshListener {
-                viewModel.refresh()
-                viewModel.getLoadingStatus().observe(viewLifecycleOwner) {
-                    if (it == Loading.NOT_LOADING) {
-                        swipeRefresh.isRefreshing = false
-                    }
+            swipeRefresh
+                .onRefreshListener()
+                .onEach {
+                    viewModel.refresh()
+                    viewModel.fetchBreeds()
+                    swipeRefresh.isRefreshing = false
                 }
-            }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
 
             recycler.apply {
                 val layout = LinearLayoutManager(requireContext())
@@ -59,20 +68,35 @@ class CatsBreedFragment : Fragment() {
                 layoutManager = layout
                 addBottomSpaceDecorationRes(resources.getDimensionPixelSize(R.dimen.item_space_bottom))
                 addPagingScrollListener(layout, 10) {
-                    viewModel.fetchBreeds().observe(viewLifecycleOwner) {
-                        catsAdapter.submitList(it.toList())
+                    lifecycleScope.launch {
+                        viewModel.fetchBreeds()
                     }
                 }
             }
 
-            viewModel.fetchBreeds().observe(viewLifecycleOwner) {
-                catsAdapter.submitList(it.toList())
+            lifecycleScope.launch {
+                viewModel.fetchBreeds()
             }
         }
+    }
+
+    private fun fetchPage() {
+        viewModel.sharedFlow
+            .onEach {
+                catsAdapter.submitList(it)
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun SwipeRefreshLayout.onRefreshListener() = callbackFlow {
+        this@onRefreshListener.setOnRefreshListener {
+            this.trySend(Unit)
+        }
+        this.awaitClose()
     }
 }

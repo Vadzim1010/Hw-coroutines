@@ -20,12 +20,12 @@ fun RecyclerView.addPagingScrollListener(
             val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
 
             if (dy != 0 && totalItemCount <= (lastVisibleItem + itemsToLoad)) {
+                log("total item count: $totalItemCount")
                 onLoadMore()
             }
         }
     })
 }
-
 
 
 fun RecyclerView.addBottomSpaceDecorationRes(@DimenRes bottomSpaceRes: Int) {

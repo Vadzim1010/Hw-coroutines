@@ -6,10 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import coil.load
 import com.example.hw_catsapi.CatsApplication
 import com.example.hw_catsapi.databinding.FragementDescriptionBinding
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class DescriptionFragment : Fragment() {
 
@@ -36,11 +39,13 @@ class DescriptionFragment : Fragment() {
         val id = args.itemId
 
         with(binding) {
-            viewModel.fetchDescription(id).observe(viewLifecycleOwner) { description ->
-                if (description != null) {
-                    catImage.load(description.catImageUrl)
-                    catBreed.text = description.breed
-                    catDescription.text = description.description
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.fetchDescription(id).collect { description ->
+                    if (description != null) {
+                        catImage.load(description.catImageUrl)
+                        catBreed.text = description.breed
+                        catDescription.text = description.description
+                    }
                 }
             }
         }
