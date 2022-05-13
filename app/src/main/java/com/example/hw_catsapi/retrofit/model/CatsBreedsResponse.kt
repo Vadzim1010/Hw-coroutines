@@ -1,5 +1,6 @@
 package com.example.hw_catsapi.retrofit.model
 
+import com.example.hw_catsapi.database.CatEntity
 import com.google.gson.annotations.SerializedName
 
 data class CatsBreedsResponse(

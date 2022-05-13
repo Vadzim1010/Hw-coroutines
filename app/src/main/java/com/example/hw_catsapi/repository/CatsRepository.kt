@@ -1,24 +1,49 @@
 package com.example.hw_catsapi.repository
 
-import com.example.hw_catsapi.model.CatBreed
+import com.example.hw_catsapi.database.CatEntity
+import com.example.hw_catsapi.database.CatsDao
+import com.example.hw_catsapi.model.Cat
 import com.example.hw_catsapi.model.CatDescription
 import com.example.hw_catsapi.retrofit.CatsApi
+import com.example.hw_catsapi.retrofit.model.CatsBreedsResponse
 import com.example.hw_catsapi.utils.mapBreeds
 import com.example.hw_catsapi.utils.mapDescription
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
 
-class CatsRepository(private val catsApi: CatsApi) {
+class CatsRepository(
+    private val catsApi: CatsApi,
+    private val catsDao: CatsDao
+) {
 
-    suspend fun fetchBreeds(page: Int): List<CatBreed> = withContext(Dispatchers.IO) {
-        val resultList: List<CatBreed>
-        try {
-            resultList = catsApi.getCatsBreed(page, 20)
-                .mapBreeds()
-        } catch (e: Throwable) {
-            throw e
+    suspend fun fetchBreeds(page: Int): Flow<List<Cat>> {
+//        delay for testing
+        delay(1000)
+        var responseList: List<CatsBreedsResponse> = listOf()
+        runCatching {
+            catsApi.getCatsBreed(page, 20)
         }
-        resultList.toList()
+            .onSuccess {
+                responseList = it
+            }
+            .onFailure {
+                throw it
+            }
+        return flow {
+            emit(responseList.mapBreeds())
+        }
+    }
+
+    suspend fun loadCacheCats(): Flow<List<Cat>> = flow {
+        val cacheList = catsDao.getCats()
+            .map { it.toModel() }
+        emit(cacheList)
+    }
+
+    suspend fun insertCacheCats(cacheList: List<CatEntity>) {
+        catsDao.insertCats(cacheList)
     }
 
     suspend fun fetchDescription(breedId: String): List<CatDescription> {

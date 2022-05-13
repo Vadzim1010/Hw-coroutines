@@ -11,7 +11,7 @@ import androidx.navigation.fragment.navArgs
 import coil.load
 import com.example.hw_catsapi.CatsApplication
 import com.example.hw_catsapi.databinding.FragementDescriptionBinding
-import kotlinx.coroutines.flow.collect
+import com.example.hw_catsapi.utils.repository
 import kotlinx.coroutines.launch
 
 class DescriptionFragment : Fragment() {

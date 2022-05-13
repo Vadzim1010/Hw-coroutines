@@ -13,13 +13,14 @@ import coil.size.ViewSizeResolver
 import com.example.hw_catsapi.databinding.ItemCatsBreedBinding
 import com.example.hw_catsapi.databinding.ItemErrorBinding
 import com.example.hw_catsapi.databinding.ItemLoadingBinding
-import com.example.hw_catsapi.model.CatBreed
+import com.example.hw_catsapi.model.Cat
 import com.example.hw_catsapi.model.PagingItem
+
 
 class CatsBreedAdapter(
     context: Context,
     private val itemClick: (String) -> Unit
-) : ListAdapter<PagingItem<CatBreed>, ItemViewHolder>(DIF_UTIL) {
+) : ListAdapter<PagingItem<Cat>, ItemViewHolder>(DIF_UTIL) {
 
     private val layoutInflater = LayoutInflater.from(context)
 
@@ -63,20 +64,22 @@ class CatsBreedAdapter(
         private const val TYPE_ERROR = 1
         private const val TYPE_LOADING = 2
 
-        private val DIF_UTIL = object : DiffUtil.ItemCallback<PagingItem<CatBreed>>() {
+        private val DIF_UTIL = object : DiffUtil.ItemCallback<PagingItem<Cat>>() {
             override fun areItemsTheSame(
-                oldPagingItem: PagingItem<CatBreed>,
-                newPagingItem: PagingItem<CatBreed>
+                oldPagingItem: PagingItem<Cat>,
+                newPagingItem: PagingItem<Cat>
             ): Boolean {
                 return oldPagingItem == newPagingItem
             }
 
             override fun areContentsTheSame(
-                oldPagingItem: PagingItem<CatBreed>,
-                newPagingItem: PagingItem<CatBreed>
+                oldPagingItem: PagingItem<Cat>,
+                newPagingItem: PagingItem<Cat>
             ): Boolean {
-                val oldCatBreedItem = oldPagingItem as? PagingItem.Content<CatBreed> ?: return false
-                val newCatBreedItem = oldPagingItem as? PagingItem.Content<CatBreed> ?: return false
+                val oldCatBreedItem =
+                    oldPagingItem as? PagingItem.Content<Cat> ?: return false
+                val newCatBreedItem =
+                    oldPagingItem as? PagingItem.Content<Cat> ?: return false
                 return oldCatBreedItem.data.breed == newCatBreedItem.data.breed &&
                         oldCatBreedItem.data.catImageUrl == newCatBreedItem.data.catImageUrl
             }
@@ -87,7 +90,7 @@ class CatsBreedAdapter(
 
 abstract class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
-    abstract fun bind(item: PagingItem<CatBreed>)
+    abstract fun bind(item: PagingItem<Cat>)
 }
 
 class CatsBreedViewHolder(
@@ -95,8 +98,8 @@ class CatsBreedViewHolder(
     private val itemClick: (String) -> Unit
 ) : ItemViewHolder(binding.root) {
 
-    override fun bind(item: PagingItem<CatBreed>) {
-        val itemCat = item as? PagingItem.Content<CatBreed> ?: return
+    override fun bind(item: PagingItem<Cat>) {
+        val itemCat = item as? PagingItem.Content<Cat> ?: return
         with(binding) {
             catBreedTextView.text = itemCat.data.breed
             catImageView.load(itemCat.data.catImageUrl) {
@@ -114,7 +117,7 @@ class ErrorViewHolder(
     private val binding: ItemErrorBinding
 ) : ItemViewHolder(binding.root) {
 
-    override fun bind(item: PagingItem<CatBreed>) {
+    override fun bind(item: PagingItem<Cat>) {
         val errorItem = item as? PagingItem.Error ?: return
         binding.errorTextView.text = errorItem.error.message
     }
@@ -124,7 +127,7 @@ class LoadingViewHolder(
     binding: ItemLoadingBinding
 ) : ItemViewHolder(binding.root) {
 
-    override fun bind(item: PagingItem<CatBreed>) {
+    override fun bind(item: PagingItem<Cat>) {
         // do nothing
     }
 }
