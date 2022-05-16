@@ -1,6 +1,6 @@
 package com.example.hw_catsapi.retrofit.model
 
-import com.example.hw_catsapi.database.CatEntity
+import com.example.hw_catsapi.model.Cat
 import com.google.gson.annotations.SerializedName
 
 data class CatsBreedsResponse(
@@ -12,7 +12,15 @@ data class CatsBreedsResponse(
     val description: String,
     @SerializedName("image")
     val imageBreed: ImageBreed?,
-)
+) {
+
+
+    fun toModel() = Cat(
+        id = id,
+        breed = breed,
+        catImageUrl = imageBreed?.imageBreedUrl
+    )
+}
 
 data class ImageBreed(
     @SerializedName("url")

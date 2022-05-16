@@ -8,13 +8,13 @@ import com.example.hw_catsapi.retrofit.CatsServiceLocator
 
 class CatsApplication : Application() {
 
+
     private val catsApi by lazy { CatsServiceLocator.provideCatsApi() }
-
-    val catsRepository by lazy { CatsRepository(catsApi, appDatabase.getCatsDao()) }
-
 
     private var _appDatabase: CatsDatabase? = null
     private val appDatabase get() = requireNotNull(_appDatabase)
+
+    val catsRepository by lazy { CatsRepository(catsApi, appDatabase.getCatsDao()) }
 
 
     override fun onCreate() {

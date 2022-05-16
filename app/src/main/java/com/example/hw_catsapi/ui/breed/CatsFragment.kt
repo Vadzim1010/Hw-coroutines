@@ -4,39 +4,41 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.hw_catsapi.CatsApplication
 import com.example.hw_catsapi.R
-import com.example.hw_catsapi.adapter.CatsBreedAdapter
-import com.example.hw_catsapi.database.CatEntity
-import com.example.hw_catsapi.databinding.FragmentCatsBreedBinding
-import com.example.hw_catsapi.model.Cat
-import com.example.hw_catsapi.model.PagingItem
-import com.example.hw_catsapi.utils.*
-import kotlinx.coroutines.*
+import com.example.hw_catsapi.adapter.CatsAdapter
+import com.example.hw_catsapi.databinding.FragmentCatsBinding
+import com.example.hw_catsapi.utils.addBottomSpaceDecorationRes
+import com.example.hw_catsapi.utils.addPagingScrollFlow
+import com.example.hw_catsapi.utils.onNetworkChanges
+import com.example.hw_catsapi.utils.repository
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-class CatsBreedFragment : Fragment() {
+class CatsFragment : Fragment() {
 
-    private var _binding: FragmentCatsBreedBinding? = null
+
+    private var _binding: FragmentCatsBinding? = null
     private val binding get() = requireNotNull(_binding) { "binding is null $_binding" }
-    private val viewModel by viewModels<CatsBreedViewModel> {
-        CatsBreedViewModelFactory(requireContext().repository)
+    private val viewModel by viewModels<CatsViewModel> {
+        CatsViewModelFactory(requireContext().repository)
     }
     private val catsAdapter by lazy {
-        CatsBreedAdapter(requireContext()) {
-            findNavController().navigate(CatsBreedFragmentDirections.toDescription(it))
+        CatsAdapter(requireContext()) {
+            findNavController().navigate(CatsFragmentDirections.toDescription(it))
         }
     }
-    private val pagingFlow = MutableSharedFlow<Unit>(
-        replay = 1
-    )
+    private var isLoading = false
 
 
     override fun onCreateView(
@@ -44,37 +46,48 @@ class CatsBreedFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return FragmentCatsBreedBinding.inflate(layoutInflater, container, false)
+        return FragmentCatsBinding.inflate(layoutInflater, container, false)
             .also { _binding = it }
             .root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        loadPages()
         initRecycler()
+        subscribeOnPagingFlow()
+        loadNextPage()
         addRefreshListener()
-        requireContext().onNetworkChanges
-            .onEach { isNetWorkAvailable ->
-
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.loadCacheCats()
-            viewModel.fetchPage()
-        }
-        pagingFlow
-            .onEach {
-                viewModel.loadCacheCats()
-                viewModel.fetchPage()
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        addNetworkStateListener()
     }
 
-    private fun loadPages() {
-        viewModel.sharedFlow
-            .onEach { pagingList ->
-                catsAdapter.submitList(pagingList)
+    private fun loadNextPage() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (!isLoading) {
+                isLoading = true
+                viewModel.fetchPage()
+                isLoading = false
+            }
+        }
+    }
+
+    private fun subscribeOnPagingFlow() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.sharedFlow
+                .onEach { pagingList ->
+                    catsAdapter.submitList(pagingList)
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+        }
+    }
+
+    private fun addNetworkStateListener() {
+        requireContext().onNetworkChanges
+            .filter { isNetworkAvailable ->
+                !isNetworkAvailable
+            }
+            .onEach {
+                Toast.makeText(requireContext(), "Lost internet connection.", Toast.LENGTH_SHORT)
+                    .show()
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -84,7 +97,6 @@ class CatsBreedFragment : Fragment() {
             .onRefreshListener()
             .onEach {
                 viewModel.refresh()
-                viewModel.fetchPage()
                 swipeRefresh.isRefreshing = false
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -93,12 +105,11 @@ class CatsBreedFragment : Fragment() {
     private fun addScrollListener(manager: LinearLayoutManager) = with(binding) {
         recycler.apply {
             addBottomSpaceDecorationRes(resources.getDimensionPixelSize(R.dimen.item_space_bottom))
-            addPagingScrollListener(manager, 10) {
-                pagingFlow.tryEmit(Unit)
-            }
+            addPagingScrollFlow(manager, ITEMS_TO_LOAD, LAST_ITEM)
+                .onEach { loadNextPage() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
         }
     }
-
 
     private fun initRecycler() = with(binding) {
         recycler.apply {
@@ -119,5 +130,12 @@ class CatsBreedFragment : Fragment() {
             this.trySend(Unit)
         }
         this.awaitClose()
+    }
+
+    companion object {
+
+        private const val LAST_ITEM =
+            67 // костыль потому что не разобрался как достсать размер списка из апи
+        private const val ITEMS_TO_LOAD = 10
     }
 }

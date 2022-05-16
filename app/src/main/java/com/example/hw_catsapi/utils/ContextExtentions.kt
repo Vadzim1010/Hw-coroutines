@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
+
 val Context.onNetworkChanges: Flow<Boolean>
     get() = callbackFlow {
         val connectivityManager = getSystemService<ConnectivityManager>()
@@ -36,7 +37,6 @@ val Context.onNetworkChanges: Flow<Boolean>
         )
         awaitClose()
     }
-
 
 val Context.repository: CatsRepository
     get() = when (this) {

@@ -7,14 +7,20 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.navigation.ui.setupWithNavController
 import coil.load
 import com.example.hw_catsapi.CatsApplication
 import com.example.hw_catsapi.databinding.FragementDescriptionBinding
 import com.example.hw_catsapi.utils.repository
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class DescriptionFragment : Fragment() {
+
 
     private var _binding: FragementDescriptionBinding? = null
     private val binding get() = requireNotNull(_binding) { "binding is null $_binding" }
@@ -22,6 +28,7 @@ class DescriptionFragment : Fragment() {
     private val viewModel by viewModels<DescriptionViewModel> {
         DescriptionViewModelFactory((requireActivity().application as CatsApplication).repository)
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,16 +45,24 @@ class DescriptionFragment : Fragment() {
 
         val id = args.itemId
 
-        with(binding) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.fetchDescription(id).collect { description ->
-                    if (description != null) {
-                        catImage.load(description.catImageUrl)
-                        catBreed.text = description.breed
-                        catDescription.text = description.description
-                    }
+        initDescription(id)
+        initButtons()
+    }
+
+    private fun initButtons() = with(binding) {
+        toolbar.setupWithNavController(findNavController())
+    }
+
+    private fun initDescription(id: String) = with(binding) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.fetchDescription(id)
+                ?.onEach { description ->
+                    checkNotNull(description)
+                    catImage.load(description.catImageUrl)
+                    catBreed.text = description.breed
+                    catDescription.text = description.description
                 }
-            }
+                ?.launchIn(viewLifecycleOwner.lifecycleScope)
         }
     }
 

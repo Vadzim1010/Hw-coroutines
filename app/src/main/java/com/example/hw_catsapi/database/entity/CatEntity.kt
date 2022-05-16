@@ -1,4 +1,4 @@
-package com.example.hw_catsapi.database
+package com.example.hw_catsapi.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -13,10 +13,12 @@ data class CatEntity(
     val breed: String,
     @ColumnInfo(name = "cat_image_url")
     val catImageUrl: String?,
+    @ColumnInfo(name = "page")
+    val page: Int
 ) {
     fun toModel() = Cat(
         id = id,
         breed = breed,
-        catImageUrl = catImageUrl
+        catImageUrl = catImageUrl,
     )
 }
