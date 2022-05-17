@@ -6,6 +6,7 @@ import com.example.hw_catsapi.database.CatsDatabase
 import com.example.hw_catsapi.repository.CatsRepository
 import com.example.hw_catsapi.retrofit.CatsServiceLocator
 
+
 class CatsApplication : Application() {
 
 

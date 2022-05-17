@@ -18,41 +18,41 @@ class CatsViewModel(private val repository: CatsRepository) : ViewModel() {
 
 
     private var page = 0
-    private val _sharedFlow = MutableSharedFlow<List<PagingItem<Cat>>>(
+    private val _catsPageFlow = MutableSharedFlow<List<PagingItem<Cat>>>(
         replay = 1, extraBufferCapacity = 0, onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    val sharedFlow = _sharedFlow.asSharedFlow()
+    val catsPageFlow = _catsPageFlow.asSharedFlow()
 
 
     suspend fun loadNextPage() {
         runCatching { repository.fetchCats(page) }
             .onSuccess {
-                loadCacheCats((page + 1) * LIMIT)
+                loadCachedCats((page + 1) * LIMIT)
                     .map { cacheList ->
                         cacheList
                             .plus(PagingItem.Loading)
                     }
-                    .onEach { _sharedFlow.tryEmit(it) }
+                    .onEach { _catsPageFlow.tryEmit(it) }
                     .onEach { page++ }
                     .onEach { log("current page: $page") }
-                    .filter { page > LAST_PAGE }
-                    .onEach { _sharedFlow.tryEmit(it.dropLast(1)) }
+                    .filter { page >= LAST_PAGE }
+                    .onEach { _catsPageFlow.tryEmit(it.dropLast(1)) }
                     .launchIn(viewModelScope)
             }
             .onFailure { throwable ->
                 delay(1000)
 
-                loadCacheCats(Int.MAX_VALUE)
+                loadCachedCats(Int.MAX_VALUE)
                     .map { cacheList ->
                         cacheList
                             .plus(PagingItem.Error(throwable))
                     }
-                    .onEach { _sharedFlow.tryEmit(it) }
+                    .onEach { _catsPageFlow.tryEmit(it) }
                     .launchIn(viewModelScope)
             }
     }
 
-    private suspend fun loadCacheCats(limit: Int): Flow<List<PagingItem<Cat>>> {
+    private suspend fun loadCachedCats(limit: Int): Flow<List<PagingItem<Cat>>> {
         return repository.getCachedCats(limit)
             .mapToPage()
     }

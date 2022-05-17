@@ -11,7 +11,6 @@ import com.example.hw_catsapi.utils.mapToDescription
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 
 class CatsRepository(
     private val catsApi: CatsApi,
@@ -21,7 +20,7 @@ class CatsRepository(
 
     suspend fun fetchCats(page: Int) {
         runCatching {
-            delay(2000)
+            delay(1000)
             log("load internet")
             catsApi.getCatsBreed(page, 20)
         }

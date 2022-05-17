@@ -1,7 +1,6 @@
 package com.example.hw_catsapi.utils
 
 import android.graphics.Rect
-import android.view.Menu
 import android.view.View
 import androidx.annotation.DimenRes
 import androidx.appcompat.widget.SearchView

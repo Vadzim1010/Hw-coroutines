@@ -14,11 +14,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.hw_catsapi.R
 import com.example.hw_catsapi.adapter.CatsAdapter
 import com.example.hw_catsapi.databinding.FragmentCatsBinding
-import com.example.hw_catsapi.model.Cat
-import com.example.hw_catsapi.model.PagingItem
 import com.example.hw_catsapi.utils.*
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class CatsFragment : Fragment() {
@@ -50,8 +51,8 @@ class CatsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecycler()
-        subscribeOnPagingFlow()
         loadNextPage()
+        subscribeOnPagingFlow()
         addRefreshListener()
         addNetworkStateListener()
 
@@ -69,7 +70,7 @@ class CatsFragment : Fragment() {
 
     private fun subscribeOnPagingFlow() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.sharedFlow
+            viewModel.catsPageFlow
                 .onEach { pagingList ->
                     log(pagingList.size.toString())
                     catsAdapter.submitList(pagingList)
@@ -95,6 +96,8 @@ class CatsFragment : Fragment() {
             .onRefreshListener()
             .onEach {
                 viewModel.refresh()
+            }
+            .onEach {
                 swipeRefresh.isRefreshing = false
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
