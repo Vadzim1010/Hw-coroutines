@@ -14,15 +14,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.hw_catsapi.R
 import com.example.hw_catsapi.adapter.CatsAdapter
 import com.example.hw_catsapi.databinding.FragmentCatsBinding
-import com.example.hw_catsapi.utils.addBottomSpaceDecorationRes
-import com.example.hw_catsapi.utils.addPagingScrollFlow
-import com.example.hw_catsapi.utils.onNetworkChanges
-import com.example.hw_catsapi.utils.repository
+import com.example.hw_catsapi.model.Cat
+import com.example.hw_catsapi.model.PagingItem
+import com.example.hw_catsapi.utils.*
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class CatsFragment : Fragment() {
@@ -58,13 +54,14 @@ class CatsFragment : Fragment() {
         loadNextPage()
         addRefreshListener()
         addNetworkStateListener()
+
     }
 
     private fun loadNextPage() {
         viewLifecycleOwner.lifecycleScope.launch {
             if (!isLoading) {
                 isLoading = true
-                viewModel.fetchPage()
+                viewModel.loadNextPage()
                 isLoading = false
             }
         }
@@ -74,6 +71,7 @@ class CatsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.sharedFlow
                 .onEach { pagingList ->
+                    log(pagingList.size.toString())
                     catsAdapter.submitList(pagingList)
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)

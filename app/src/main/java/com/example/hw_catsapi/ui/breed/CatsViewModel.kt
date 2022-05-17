@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.hw_catsapi.model.Cat
 import com.example.hw_catsapi.model.PagingItem
 import com.example.hw_catsapi.repository.CatsRepository
+import com.example.hw_catsapi.utils.LAST_PAGE
+import com.example.hw_catsapi.utils.LIMIT
 import com.example.hw_catsapi.utils.log
 import com.example.hw_catsapi.utils.mapToPage
 import kotlinx.coroutines.channels.BufferOverflow
@@ -16,40 +18,25 @@ class CatsViewModel(private val repository: CatsRepository) : ViewModel() {
 
 
     private var page = 0
-    private var pagingList = listOf<PagingItem<Cat>>()
     private val _sharedFlow = MutableSharedFlow<List<PagingItem<Cat>>>(
         replay = 1, extraBufferCapacity = 0, onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val sharedFlow = _sharedFlow.asSharedFlow()
 
 
-    suspend fun fetchPage() {
-        loadCacheCats((page + 1) * 20)
-            .map { cacheList ->
-                cacheList
-                    .plus(PagingItem.Loading)
-            }
-            .onEach { _sharedFlow.tryEmit(it) }
-            .launchIn(viewModelScope)
-
+    suspend fun loadNextPage() {
         runCatching { repository.fetchCats(page) }
-            .onSuccess { catsFlow ->
-                catsFlow
-                    .mapToPage()
-                    .map { newPagingList ->
-                        pagingList
-                            .dropLast(1)
-                            .plus(newPagingList)
+            .onSuccess {
+                loadCacheCats((page + 1) * LIMIT)
+                    .map { cacheList ->
+                        cacheList
                             .plus(PagingItem.Loading)
                     }
-                    .onEach { pagingList = it }
-//                    .onEach { _sharedFlow.tryEmit(pagingList) }
+                    .onEach { _sharedFlow.tryEmit(it) }
                     .onEach { page++ }
-                    .onEach { log(page.toString()) }
-                    .onEach { log("load internet") }
-//                    .filter { page == 4 }
-//                    .onEach { pagingList = pagingList.dropLast(1) }
-//                    .onEach { _sharedFlow.tryEmit(pagingList) }
+                    .onEach { log("current page: $page") }
+                    .filter { page > LAST_PAGE }
+                    .onEach { _sharedFlow.tryEmit(it.dropLast(1)) }
                     .launchIn(viewModelScope)
             }
             .onFailure { throwable ->
@@ -60,21 +47,19 @@ class CatsViewModel(private val repository: CatsRepository) : ViewModel() {
                         cacheList
                             .plus(PagingItem.Error(throwable))
                     }
-//                    .onEach { _sharedFlow.tryEmit(it) }
+                    .onEach { _sharedFlow.tryEmit(it) }
                     .launchIn(viewModelScope)
             }
     }
 
     private suspend fun loadCacheCats(limit: Int): Flow<List<PagingItem<Cat>>> {
-        log("load cache")
         return repository.getCachedCats(limit)
             .mapToPage()
     }
 
     suspend fun refresh() {
         page = 0
-        pagingList = emptyList()
-        fetchPage()
+        loadNextPage()
     }
 }
 

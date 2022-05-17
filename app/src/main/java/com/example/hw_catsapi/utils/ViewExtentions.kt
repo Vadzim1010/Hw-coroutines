@@ -1,10 +1,14 @@
 package com.example.hw_catsapi.utils
 
 import android.graphics.Rect
+import android.view.Menu
 import android.view.View
 import androidx.annotation.DimenRes
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.hw_catsapi.R
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 
@@ -49,4 +53,26 @@ fun RecyclerView.addBottomSpaceDecorationRes(@DimenRes bottomSpaceRes: Int) {
         }
     })
 }
+
+fun Toolbar.onSearchListenerFlow() = callbackFlow {
+    val searchView = menu.findItem(R.id.search).actionView as SearchView
+
+    val queryTextListener = object : SearchView.OnQueryTextListener {
+        override fun onQueryTextSubmit(query: String?): Boolean {
+            return false
+        }
+
+        override fun onQueryTextChange(newText: String?): Boolean {
+            this@callbackFlow.trySend(newText)
+            return true
+        }
+    }
+
+    searchView.setOnQueryTextListener(queryTextListener)
+
+    awaitClose {
+        searchView.setOnQueryTextListener(null)
+    }
+}
+
 

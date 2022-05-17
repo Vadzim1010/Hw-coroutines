@@ -5,6 +5,7 @@ import com.example.hw_catsapi.database.entity.CatEntity
 import com.example.hw_catsapi.model.Cat
 import com.example.hw_catsapi.model.CatDescription
 import com.example.hw_catsapi.retrofit.CatsApi
+import com.example.hw_catsapi.utils.log
 import com.example.hw_catsapi.utils.mapToCats
 import com.example.hw_catsapi.utils.mapToDescription
 import kotlinx.coroutines.delay
@@ -18,30 +19,31 @@ class CatsRepository(
 ) {
 
 
-    suspend fun fetchCats(page: Int): Flow<List<Cat>> = runCatching {
-        delay(3000)
-        catsApi.getCatsBreed(page, 20)
+    suspend fun fetchCats(page: Int) {
+        runCatching {
+            delay(2000)
+            log("load internet")
+            catsApi.getCatsBreed(page, 20)
+        }
+            .onSuccess { }
+            .map { responseList ->
+                val cacheList = responseList
+                    .mapToCats()
+                    .map { catsList ->
+                        catsList.toEntity(page)
+                    }
+
+                insertCacheCats(cacheList)
+            }
+            .onFailure { throwable ->
+                throw throwable
+            }
     }
-        .onSuccess { }
-        .map { responseList ->
-            val cacheList = responseList
-                .mapToCats()
-                .map { catsList ->
-                    catsList.toEntity(page)
-                }
-
-            insertCacheCats(cacheList)
-
-            flowOf(responseList.mapToCats())
-        }
-        .onFailure { throwable ->
-            throw throwable
-        }
-        .getOrThrow()
 
     suspend fun getCachedCats(limit: Int): Flow<List<Cat>> = flow {
         val cacheList = catsDao.getCats(limit = limit)
             .map { it.toModel() }
+        log("load cache")
         emit(cacheList)
     }
 
